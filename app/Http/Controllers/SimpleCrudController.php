@@ -6,24 +6,25 @@ use App\Models\SimpleCrud;
 use App\Http\Requests\StoreSimpleCrudRequest;
 use App\Http\Requests\UpdateSimpleCrudRequest;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class SimpleCrudController extends Controller
 {
     public function index()
     {
         $data = SimpleCrud::all();
-        if ($data == null) {
-            return [
-                'status' => 200,
-                'success' => false,
-                'message' => 'Data not found',
-            ];
-        } else {
+        if ($data->isNotEmpty()) {
             return [
                 'status' => 201,
                 'success' => true,
                 'message' => 'Data Found',
                 'data' => $data
+            ];
+        } else {
+            return [
+                'status' => 200,
+                'success' => false,
+                'message' => 'Data not found',
             ];
         }
     }
@@ -31,20 +32,14 @@ class SimpleCrudController extends Controller
     public function store(StoreSimpleCrudRequest $request)
     {
         try {
-            $dataCheck = SimpleCrud::create($request->validated());
-            if ($dataCheck == null) {
-                return [
-                    'status' => 200,
-                    'success' => false,
-                    'message' => 'Data not found'
-                ];
-            } else {
-                return [
-                    'status' => 201,
-                    'success' => true,
-                    'message' => 'Data insert Successfully'
-                ];
-            }
+            $image = $request->file('image');
+            Storage::disk('local')->put('public/store', $image);
+            SimpleCrud::create($request->validated());
+            return [
+                'status' => 201,
+                'success' => true,
+                'message' => 'Data insert Successfully'
+            ];
         } catch (\Exception $e) {
             $exception = $e->getMessage();
             Log::channel('developer')->info("Create Error ===> ".$exception);
@@ -56,43 +51,25 @@ class SimpleCrudController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(SimpleCrud $simple)
     {
-        $simpleCrud = SimpleCrud::where('id',$id)->first();
-        if ($simpleCrud == null) {
-            return [
-                'status' => 200,
-                'success' => false,
-                'message' => 'Data not found',
-            ];
-        } else {
+        return [
+            'status' => 201,
+            'success' => true,
+            'message' => 'Data Found',
+            'data' => $simple
+        ];
+    }
+
+    public function update(UpdateSimpleCrudRequest $request, SimpleCrud $simple)
+    {
+        try {
+            $simple->update($request->validated());
             return [
                 'status' => 201,
                 'success' => true,
-                'message' => 'Data Found',
-                'data' => $simpleCrud
+                'message' => 'Data update Successfully'
             ];
-        }
-    }
-
-    public function update(UpdateSimpleCrudRequest $request, $id)
-    {
-        try {
-            $dataUpdate = SimpleCrud::find($id);
-            if ($dataUpdate == null) {
-                return [
-                    'status' => 200,
-                    'success' => false,
-                    'message' => 'Data not found'
-                ];
-            } else {
-                $dataUpdate->update($request->validated());
-                return [
-                    'status' => 201,
-                    'success' => true,
-                    'message' => 'Data update Successfully'
-                ];
-            }
         } catch (\Exception $e) {
             $exception = $e->getMessage();
             Log::channel('developer')->info("Update Error ===> ".$exception);
@@ -104,21 +81,54 @@ class SimpleCrudController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function archive()
     {
-        $data = SimpleCrud::find($id)->delete();
-        if ($data == null) {
+        $trashData = SimpleCrud::onlyTrashed()->orderBy('deleted_at','desc')->get();
+        if ($trashData->isNotEmpty()) {
+            return [
+                'status' => 201,
+                'success' => true,
+                'message' => 'Data Found',
+                'data' => $trashData
+            ];
+        } else {
             return [
                 'status' => 200,
                 'success' => false,
                 'message' => 'Data not found'
             ];
-        } else {
-            return [
-                'status' => 201,
-                'success' => true,
-                'message' => 'Data delete Successfully'
-            ];
         }
+    }
+
+    public function destroy(SimpleCrud $simple)
+    {
+        $simple->delete();
+        return [
+            'status' => 201,
+            'success' => true,
+            'message' => 'Data delete Successfully'
+        ];
+    }
+
+    public function permanentDelete(SimpleCrud $simple)
+    {
+        dd('hello');
+        $simple->forceDelete();
+        return [
+            'status' => 201,
+            'success' => true,
+            'message' => 'Data delete Successfully'
+        ];
+    }
+
+    public function restore(SimpleCrud $simple)
+    {
+        dd('hello');
+        $simple->restore();
+        return [
+            'status' => 201,
+            'success' => true,
+            'message' => 'Data restore Successfully'
+        ];
     }
 }

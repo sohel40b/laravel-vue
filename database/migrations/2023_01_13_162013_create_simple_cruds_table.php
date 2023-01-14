@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('gender')->comment('1 male, 0 female');
             $table->json('skills');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

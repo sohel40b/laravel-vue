@@ -15,5 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['prefix' => 'v1'], function(){
+    Route::get('simple/archive', [App\Http\Controllers\SimpleCrudController::class,'archive'])->name('simple.archive');
+    Route::post('simple/{simple}/restore', [App\Http\Controllers\SimpleCrudController::class,'restore'])->name('simple.restore');
+    Route::delete('simple/{simple}/permanent/delete', [App\Http\Controllers\SimpleCrudController::class,'permanentDelete'])->name('simple.permanent.delete');
     Route::apiResource('simple', App\Http\Controllers\SimpleCrudController::class);
 });
