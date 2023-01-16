@@ -7,12 +7,16 @@ use App\Http\Requests\StoreSimpleCrudRequest;
 use App\Http\Requests\UpdateSimpleCrudRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class SimpleCrudController extends Controller
 {
     public function index()
     {
-        $data = SimpleCrud::all();
+        $data = Cache::remember("cache",60*60*24, function(){
+            return SimpleCrud::all();
+        });
+
         if ($data->isNotEmpty()) {
             return [
                 'status' => 201,
@@ -27,6 +31,7 @@ class SimpleCrudController extends Controller
                 'message' => 'Data not found',
             ];
         }
+        
     }
 
     public function store(StoreSimpleCrudRequest $request)
@@ -106,25 +111,23 @@ class SimpleCrudController extends Controller
         return [
             'status' => 201,
             'success' => true,
-            'message' => 'Data delete Successfully'
+            'message' => 'Data deleted temporarily'
         ];
     }
 
-    public function permanentDelete(SimpleCrud $simple)
+    public function permanentDelete($simple)
     {
-        dd('hello');
-        $simple->forceDelete();
+        SimpleCrud::where('id',$simple)->withTrashed()->forceDelete();
         return [
             'status' => 201,
             'success' => true,
-            'message' => 'Data delete Successfully'
+            'message' => 'Data deleted Permanently'
         ];
     }
 
-    public function restore(SimpleCrud $simple)
+    public function restore($simple)
     {
-        dd('hello');
-        $simple->restore();
+        SimpleCrud::where('id',$simple)->withTrashed()->restore();
         return [
             'status' => 201,
             'success' => true,

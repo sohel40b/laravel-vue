@@ -10,7 +10,7 @@ class SimpleCrud extends Model
 {
     use HasFactory, SoftDeletes;
     
-    protected $table = 'simple_cruds';
+    protected $dates = ['deleted_at'];
 
     protected $fillable = ['name','email','image','gender','skills'];
 }
