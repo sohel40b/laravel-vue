@@ -13,7 +13,7 @@ class SimpleCrudController extends Controller
 {
     public function index()
     {
-        $data = Cache::remember("cache",60*60*24, function(){
+        $data = Cache::remember("cache",2, function(){
             return SimpleCrud::all();
         });
 
