@@ -8,12 +8,13 @@ use App\Http\Requests\UpdateSimpleCrudRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\URL;
 
 class SimpleCrudController extends Controller
 {
     public function index()
     {
-        $data = Cache::remember("cache",2, function(){
+        $data = Cache::remember("cache", 2, function () {
             return SimpleCrud::all();
         });
 
@@ -31,7 +32,6 @@ class SimpleCrudController extends Controller
                 'message' => 'Data not found',
             ];
         }
-        
     }
 
     public function store(StoreSimpleCrudRequest $request)
@@ -39,7 +39,13 @@ class SimpleCrudController extends Controller
         try {
             $image = $request->file('image');
             Storage::disk('local')->put('public/store', $image);
-            SimpleCrud::create($request->validated());
+            SimpleCrud::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'gender' => $request->gender,
+                'image' => URL::asset('storage/store/'.$image->hashName()),
+                'skills' => json_encode($request->skills),
+            ]);
             return [
                 'status' => 201,
                 'success' => true,
